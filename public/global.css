@@ -1,0 +1,25 @@
+body {
+  background: #e6e6e6 !important;
+}
+
+.vjs-matrix.video-js {
+  color: #00ff00;
+}
+
+/* Change the border of the big play button. */
+.vjs-matrix .vjs-big-play-button {
+  border-color: #00ff00;
+}
+
+.vjs-matrix .vjs-volume-level,
+.vjs-matrix .vjs-play-progress,
+.vjs-matrix .vjs-slider-bar {
+  background: #00ff00;
+}
+
+.muted {
+  opacity: 0.5;
+}
+.faint {
+  opacity: 0.25;
+}
