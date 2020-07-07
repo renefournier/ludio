@@ -9,14 +9,7 @@
 </script>
 
 <style>
-  .clip {
-    display: block;
-    padding: 0.5rem 1rem;
-    border-radius: 1rem;
-    box-shadow: 0 2px 10px -3px rgba(0, 0, 0, 0.2);
-    background: white;
-    margin: 0.25rem;
-  }
+
 </style>
 
 <Button block color="secondary" class="btn-block-level text-left">

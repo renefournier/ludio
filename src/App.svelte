@@ -5,6 +5,7 @@
 
   import { Container, Col, Row, Button } from "sveltestrap";
   import MarkerButton from "./components/markerButton.svelte";
+  import Render from "./components/render.svelte";
   import Clip from "./components/clip.svelte";
   import Item from "./components/item.svelte";
   import videos from "./data/videos.json";
@@ -28,6 +29,8 @@
     } else if (keyCode === 79) {
       // o == trim stop
       markOut();
+    } else if (keyCode === 69) {
+      console.log("Export!");
     }
   };
 
@@ -76,7 +79,6 @@
   };
 
   const play = async media => {
-    console.log(typeof media);
     if (typeof media === "object") {
       // Play 'em all
       media.forEach(item => {
@@ -84,7 +86,7 @@
       });
     } else {
       // Just one
-      console.log(`Playing ${media}`);
+      // console.log(`Playing ${media}`);
       const src = clips[media].src;
       const start = clips[media].start;
       await playerPreview.src(src);
@@ -104,6 +106,10 @@
         clips = [...clips];
       }
     }
+  };
+
+  const render = () => {
+    console.log("Render!");
   };
 
   onMount(async () => {
@@ -289,7 +295,7 @@
 
       <Row class="mx-0 px-0">
         <Col sm="6" class="mx-0 px-0">
-          <MarkerButton {currentTime} {start} {stop} {markIn} {markOut} />
+          <Render {clips} {render} />
         </Col>
       </Row>
 
