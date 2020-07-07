@@ -4,6 +4,8 @@
 
   export let clip;
   export let index;
+  export let del;
+  export let play;
 </script>
 
 <style>
@@ -17,22 +19,20 @@
   }
 </style>
 
-<div class="clip">
+<Button block color="secondary" class="btn-block-level text-left">
+
   <span class="float-right">
-    <span class="muted mx-3 ">{Number(clip.duration).toFixed(1)}s</span>
-
-    <PlayButton {clip} state="true" />
-
+    <strong class="muted mx-3 ">{Number(clip.duration).toFixed(1)}s</strong>
+    <PlayButton {clip} {del} {play} />
   </span>
-
-  <Badge pill color="light">{index + 1}</Badge>
-
-  <strong class="muted">
-    <span class="fa fa-lg fa-film mx-2" />
+  <strong class="faint">
+    <span class="fa fa-lg fa-film " />
   </strong>
+
+  <Badge pill color="dark">{index + 1}</Badge>
 
   <span class="muted">{clip.start.toFixed(2)}</span>
   :
   <span class="muted">{clip.stop.toFixed(2)}</span>
 
-</div>
+</Button>

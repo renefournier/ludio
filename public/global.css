@@ -1,5 +1,5 @@
 body {
-  background: #e6e6e6 !important;
+  background: #2b3e50 !important;
 }
 
 .vjs-matrix.video-js {
@@ -17,9 +17,20 @@ body {
   background: #00ff00;
 }
 
+.light {
+  opacity: 0.75;
+}
 .muted {
   opacity: 0.5;
 }
 .faint {
   opacity: 0.25;
+}
+
+ul {
+  width: 100% !important;
+}
+
+ul li {
+  width: 100% !important;
 }

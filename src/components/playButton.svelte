@@ -2,10 +2,12 @@
   import { Button } from "sveltestrap";
 
   export let source; // source media URL
-  export let preview; // previewPlayer instance
+  export let preview = null; // previewPlayer instance
   export let size = "lg"; // size of button
   export let clip; // either an object (single clip), or array (all clips)
   export let state = null;
+  export let del;
+  export let play;
 </script>
 
 <style>
@@ -17,6 +19,10 @@
   }
 </style>
 
-<strong class="player" on:click={() => console.log(clip)}>
-  <span class="fa fa-{size} fa-play-circle text-secondary" />
+<strong class="player muted" on:click={del}>
+  <span class="fa fa-trash " />
+</strong>
+
+<strong class="player ml-2" on:click={play}>
+  <span class="fa fa-{size} fa-play-circle " />
 </strong>

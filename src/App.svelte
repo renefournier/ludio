@@ -1,9 +1,5 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
-  // import { draggable } from "./lib/dragdrop.js";
-  // import { crossfade } from "svelte/transition";
-  // import { quintOut, elasticOut } from "svelte/easing";
-  // import { flip } from "svelte/animate";
   import SortableList from "svelte-sortable-list";
   import PlayButton from "./components/playButton.svelte";
 
@@ -12,14 +8,16 @@
   import Clip from "./components/clip.svelte";
   import Item from "./components/item.svelte";
   import videos from "./data/videos.json";
+  import hljs from "highlight.js";
 
   window.playerSource = {}; // Attach to window so I can monkey with the player instance from DevTools
   window.playerPreview = {};
 
   let sourceMedia, key, keyCode, currentTime;
   let start = null,
-    stop = null;
-  let clips = [{ id: Date.now(), start: 5.23, stop: 6.57, duration: 1.34 }];
+    stop = null,
+    elapsed = null;
+  let clips = [];
 
   const handleKeydown = event => {
     key = event.key;
@@ -77,10 +75,73 @@
     clips = ev.detail;
   };
 
+  const play = async media => {
+    console.log(typeof media);
+    if (typeof media === "object") {
+      // Play 'em all
+      media.forEach(item => {
+        console.log(item);
+      });
+    } else {
+      // Just one
+      console.log(`Playing ${media}`);
+      const src = clips[media].src;
+      const start = clips[media].start;
+      await playerPreview.src(src);
+      await playerPreview.currentTime(start);
+      await playerSource.pause();
+      await playerPreview.play();
+    }
+  };
+
+  const del = media => {
+    if (typeof media === "object") {
+      clips = [];
+    } else {
+      if (media > -1) {
+        console.log(`Deleting ${media}`);
+        const deletedClip = clips.splice(media, 1);
+        clips = [...clips];
+      }
+    }
+  };
+
   onMount(async () => {
     console.log("M: 🏇");
 
-    sourceMedia = videos[Math.floor(Math.random() * videos.length)]; // let’s pick one at random, shall we?
+    sourceMedia = videos[Math.floor(Math.random() * videos.length)]; // let’s pick one at random, shall we? It’s all great content, so let’s not be too picky, right?!
+
+    clips = [
+      {
+        id: Date.now(),
+        src: sourceMedia,
+        start: 2.23,
+        stop: 5.57,
+        duration: 3.34
+      },
+      {
+        id: Date.now() + 1,
+        src: sourceMedia,
+        start: 22.1,
+        stop: 27.57,
+        duration: 5.47
+      },
+      {
+        id: Date.now() + 2,
+        src: sourceMedia,
+        start: 58.789,
+        stop: 65.24,
+        duration: 6.451
+      },
+      {
+        id: Date.now() + 3,
+        src: sourceMedia,
+        start: 70,
+        stop: 72,
+        duration: 2
+      },
+      { id: Date.now() + 4, src: sourceMedia, start: 77, stop: 85, duration: 8 }
+    ];
 
     window.playerSource = videojs(
       "video-source",
@@ -99,7 +160,6 @@
       {
         autoplay: false,
         controls: true,
-
         sources: videos[Math.floor(Math.random() * videos.length)] // pick a random video
       },
       function onPlayerReady() {
@@ -109,65 +169,32 @@
   });
 
   onDestroy(async () => {
-    console.log("U: 🐎 ");
+    console.log("U: 🐎 "); // rider falls off
   });
 
-  let now = Date();
   setInterval(function() {
-    now = Date();
     const seconds = playerSource.currentTime();
     currentTime = new Date(seconds * 1000).toISOString().substr(11, 10);
+    if (start) {
+      elapsed = seconds - start;
+    }
   }, 100);
 </script>
 
 <style>
-  h1 {
-    color: #ff3e00;
-    /* text-transform: uppercase; */
-    font-size: 4em;
-    font-weight: 100;
-    margin: 1rem;
+  .monitor {
+    background: rgba(0, 0, 0, 0.7);
   }
-  h2 {
-    text-align: center;
-    font-weight: 300;
-    font-size: 1.5rem;
-    color: #999;
-  }
-  h3 {
-    text-align: center;
-    font-weight: 300;
-    font-size: 1.25rem;
-    color: #777;
-  }
-  .src {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    display: inline;
-    overflow-x: scroll;
-  }
-
-  /* .video {
-    max-width: 600px;
-    max-height: 400px;
-    border-radius: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.02);
-    background: #222;
-    box-shadow: 0 3px 15px -3px rgba(0, 0, 0, 1);
-    margin: 1rem auto;
-    style: 10px solid red;
-  } */
-
   .video {
     max-width: 100%;
     max-height: 350px;
   }
+  ul {
+    width: 100% !important;
+  }
 
-  .box {
-    /* width: 50vw; */
-    /* max-height: 500px; */
-    /* border: 1px solid red; */
+  ul li {
+    width: 100% !important;
   }
 </style>
 
@@ -176,43 +203,103 @@
 <Container fluid class="px-0">
   <Row class="mx-0 px-0 w-100">
     <Col sm="6" class="mx-0 px-0">
-      <div class="box">
-        <video id="video-source" class="video video-js" />
-      </div>
-      <MarkerButton {currentTime} {start} {stop} {markIn} {markOut} />
-      <Row class="mx-0 px-0 w-100">
-        <Col sm="6" class="mx-0 px-0">
 
-          <h3 class="my-2">
-            <span class="muted">
-              {clips.length} {plurality(clips.length, 'clip', 'clips')}
-            </span>
-            <strong class="ml-3" style="font-weight: 700">
-              {clipsDuration}s
-            </strong>
-          </h3>
+      <Row class="m-0 p-0 monitor">
+        <p
+          class="faint px-4 py-2 mb-0 text-center"
+          style="display:block; width: 100%">
+          <span class="fa fa-sign-in-alt mr-1" />
+          <strong>Source</strong>
+        </p>
+      </Row>
+
+      <Row class="m-0 p-0">
+        <video id="video-source" class="video video-js" />
+      </Row>
+
+      <Row class="mx-0 px-0">
+        <Col sm="6" class="mx-0 px-0">
+          <MarkerButton {currentTime} {start} {stop} {markIn} {markOut} />
         </Col>
-        <Col sm="5" class="mx-0 px-0">
-          <h3 class="p-2 float-right">
-            <PlayButton
-              size="lg"
-              clip={clips}
-              source={sourceMedia}
-              preview={playerPreview} />
-          </h3>
+        <Col sm="6" class="mx-0 px-0">
+          <div class="p-2 text-center">
+            <span class="muted">{currentTime}</span>
+            <strong class="muted ml-3">
+              {#if elapsed}{String(`${Number(elapsed).toFixed(1)}s`) || ''}{/if}
+            </strong>
+          </div>
         </Col>
       </Row>
-      <SortableList key="id" list={clips} on:sort={sortList} let:item let:index>
-        <Item {item} {index} />
-      </SortableList>
+
+      <Row class="mx-0 px-0">
+        <Col sm="6" class="mx-0 px-0">
+
+          <h5 class="mx-3 my-3">
+            <span class="muted">{clipsDuration}s</span>
+          </h5>
+        </Col>
+        <Col sm="6" class="mx-0 px-0 text-right">
+          <h5 class="mx-3 my-3 float-right">
+            <PlayButton
+              size="lg"
+              del={() => del(clips)}
+              play={() => play(clips)} />
+          </h5>
+        </Col>
+      </Row>
+
+      <Row class="mx-0 px-0 w-100">
+
+        <SortableList
+          key="id"
+          list={clips}
+          on:sort={sortList}
+          let:item
+          let:index>
+          <Item
+            {item}
+            {index}
+            del={() => del(index)}
+            play={() => play(index)} />
+        </SortableList>
+
+      </Row>
 
     </Col>
-    <Col sm="6" class="mx-0 px-0">
-      <div class="box">
+
+    <Col
+      sm="6"
+      class="m-0 p-0"
+      style="border-left: 1px solid rgba(0,0,0,0.25);">
+
+      <Row class="m-0 p-0 monitor">
+        <p
+          class="faint px-4 py-2 mb-0 text-center"
+          style="display:block; width: 100%">
+          <span class="fa fa-tv mr-1" />
+          <strong>Preview</strong>
+        </p>
+      </Row>
+
+      <Row class="m-0 p-0">
         <video
           id="video-preview"
           class="video video-js vjs-big-play-centered" />
-      </div>
+      </Row>
+
+      <Row class="mx-0 px-0">
+        <Col sm="6" class="mx-0 px-0">
+          <MarkerButton {currentTime} {start} {stop} {markIn} {markOut} />
+        </Col>
+      </Row>
+
     </Col>
+  </Row>
+
+  <Row class="mx-0 px-0 w-100" style="border-left: 1px solid rgba(0,0,0,1)">
+    <Col class="p-2">
+      <code>{JSON.stringify(clips)}</code>
+    </Col>
+
   </Row>
 </Container>
