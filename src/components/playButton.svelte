@@ -20,7 +20,7 @@
 </style>
 
 <strong class="player muted" on:click={del}>
-  <span class="fa fa-trash " />
+  <span class="fa fa-sm fa-trash " />
 </strong>
 
 <strong class="player ml-2" on:click={play}>

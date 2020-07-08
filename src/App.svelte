@@ -14,24 +14,92 @@
   window.playerSource = {}; // Attach to window so I can monkey with the player instance from DevTools
   window.playerPreview = {};
 
-  let sourceMedia, key, keyCode, currentTime;
-  let start = null,
+  let playerActive = "source",
+    sourceMedia,
+    currentTime,
+    start = null,
     stop = null,
-    elapsed = null;
-  let clips = [];
+    elapsed = null,
+    clips = [];
 
   const handleKeydown = event => {
-    key = event.key;
-    keyCode = event.keyCode;
-    if (keyCode === 73) {
-      // i == trim start
-      markIn();
-    } else if (keyCode === 79) {
-      // o == trim stop
-      markOut();
-    } else if (keyCode === 69) {
-      console.log("Export!");
+    const keyCode = event.keyCode;
+    if ([32, 73, 69, 37, 39, 40, 38, 69, 77].indexOf(keyCode) > -1) {
+      event.preventDefault();
+    } else {
+      return;
     }
+    switch (
+      keyCode // mark in/out, scrub
+    ) {
+      case 32: // pause/play
+        break;
+      case 73: // i == trim start
+        markIn();
+        break;
+      case 69: // o == trim stop
+        markOut();
+        break;
+      case 37: // left arrow rwd one frame
+        scrub("←");
+        break;
+      case 39: // right arrow fwd one frame
+        scrub("→");
+        break;
+      case 40: // go to beginning
+        scrub("⇤");
+        break;
+      case 38: // go to to end
+        scrub("⇥");
+        break;
+      case 77: // mute/unmute
+        muteToggle();
+        break;
+      case 69: // export
+        console.log("Export!");
+        break;
+    }
+  };
+
+  const muteToggle = () => {
+    switch (playerActive) {
+      case "source":
+        playerSource.muted(!playerSource.muted());
+        break;
+      case "preview":
+        playerPreview.muted(!playerPreview.muted());
+        break;
+    }
+  };
+
+  const scrub = direction => {
+    playerSource.pause(); // hold your horses, peoples
+    let s, duration, newTime;
+    switch (playerActive) {
+      case "source":
+        s = playerSource.currentTime();
+        duration = playerSource.duration();
+        break;
+      case "preview":
+        s = playerPreview.currentTime();
+        duration = playerPreview.duration();
+        break;
+    }
+    switch (direction) {
+      case "←":
+        newTime = s - 1 / 30; // one frame?
+        break;
+      case "→":
+        newTime = s + 1 / 30; // one frame?
+        break;
+      case "⇥":
+        newTime = duration;
+        break;
+      case "⇤":
+        newTime = 0;
+        break;
+    }
+    playerSource.currentTime(newTime);
   };
 
   const markIn = () => {
@@ -80,7 +148,7 @@
 
   const play = async media => {
     if (typeof media === "object") {
-      // Play 'em all
+      // Play 'em all — to do
       media.forEach(item => {
         console.log(item);
       });
@@ -91,7 +159,6 @@
       const start = clips[media].start;
       await playerPreview.src(src);
       await playerPreview.currentTime(start);
-      await playerSource.pause();
       await playerPreview.play();
     }
   };
@@ -158,8 +225,14 @@
       },
       function onPlayerReady() {
         console.log("onPlayerReady0");
+        playerSource.muted(true);
       }
     );
+
+    playerSource.on("play", function(e) {
+      playerActive = "source";
+      playerPreview.pause();
+    });
 
     window.playerPreview = videojs(
       "video-preview",
@@ -170,8 +243,14 @@
       },
       function onPlayerReady() {
         console.log("onPlayerReady1");
+        playerPreview.muted(true);
       }
     );
+
+    playerPreview.on("play", function(e) {
+      playerActive = "preview";
+      playerSource.pause();
+    });
   });
 
   onDestroy(async () => {
@@ -190,6 +269,18 @@
 <style>
   .monitor {
     background: rgba(0, 0, 0, 0.7);
+  }
+
+  .monitor > p {
+    text-align: center;
+    display: block;
+    color: rgba(255, 255, 255, 0.1);
+    width: 100%;
+  }
+
+  .monitor > p.active {
+    color: #00b4ff;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
   }
   .video {
     max-width: 100%;
@@ -211,9 +302,7 @@
     <Col sm="6" class="mx-0 px-0">
 
       <Row class="m-0 p-0 monitor">
-        <p
-          class="faint px-4 py-2 mb-0 text-center"
-          style="display:block; width: 100%">
+        <p class:active={playerActive === 'source'} class="px-4 py-2 mb-0 ">
           <span class="fa fa-sign-in-alt mr-1" />
           <strong>Source</strong>
         </p>
@@ -279,9 +368,7 @@
       style="border-left: 1px solid rgba(0,0,0,0.25);">
 
       <Row class="m-0 p-0 monitor">
-        <p
-          class="faint px-4 py-2 mb-0 text-center"
-          style="display:block; width: 100%">
+        <p class:active={playerActive === 'preview'} class="px-4 py-2 mb-0 ">
           <span class="fa fa-tv mr-1" />
           <strong>Preview</strong>
         </p>
