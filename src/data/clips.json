@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "src": null,
+    "start": 2.23,
+    "stop": 5.57,
+    "duration": 3.34
+  },
+  {
+    "id": 2,
+    "src": null,
+    "start": 22.1,
+    "stop": 27.57,
+    "duration": 5.47
+  },
+  {
+    "id": 3,
+    "src": null,
+    "start": 58.789,
+    "stop": 65.24,
+    "duration": 6.451
+  },
+  {
+    "id": 4,
+    "src": null,
+    "start": 70,
+    "stop": 72,
+    "duration": 2
+  },
+  {
+    "id": 5,
+    "src": null,
+    "start": 77,
+    "stop": 85,
+    "duration": 8
+  }
+]

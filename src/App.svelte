@@ -9,7 +9,9 @@
   import Clip from "./components/clip.svelte";
   import Item from "./components/item.svelte";
   import videos from "./data/videos.json";
-  import hljs from "highlight.js";
+  import sampleClips from "./data/clips.json";
+
+  console.log(sampleClips);
 
   window.playerSource = {}; // Attach to window so I can monkey with the player instance from DevTools
   window.playerPreview = {};
@@ -24,6 +26,7 @@
 
   const handleKeydown = event => {
     const keyCode = event.keyCode;
+    console.log(keyCode);
     if ([32, 73, 69, 37, 39, 40, 38, 69, 77].indexOf(keyCode) > -1) {
       event.preventDefault();
     } else {
@@ -184,37 +187,11 @@
 
     sourceMedia = videos[Math.floor(Math.random() * videos.length)]; // let’s pick one at random, shall we? It’s all great content, so let’s not be too picky, right?!
 
-    clips = [
-      {
-        id: Date.now(),
-        src: sourceMedia,
-        start: 2.23,
-        stop: 5.57,
-        duration: 3.34
-      },
-      {
-        id: Date.now() + 1,
-        src: sourceMedia,
-        start: 22.1,
-        stop: 27.57,
-        duration: 5.47
-      },
-      {
-        id: Date.now() + 2,
-        src: sourceMedia,
-        start: 58.789,
-        stop: 65.24,
-        duration: 6.451
-      },
-      {
-        id: Date.now() + 3,
-        src: sourceMedia,
-        start: 70,
-        stop: 72,
-        duration: 2
-      },
-      { id: Date.now() + 4, src: sourceMedia, start: 77, stop: 85, duration: 8 }
-    ];
+    clips = sampleClips.map(clip => {
+      // add random sample sourcemedia
+      clip.src = videos[Math.floor(Math.random() * videos.length)];
+      return clip;
+    });
 
     window.playerSource = videojs(
       "video-source",
