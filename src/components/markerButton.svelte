@@ -10,8 +10,8 @@
 <div class="mx-auto p-0">
   {#if start === null && stop === null}
     <Button class="w-100" on:click={markIn}>
-      <span class="fas fa-video" />
-      IN
+      <span class="fas fa-fw fa-video" />
+      <strong>in</strong>
       <small class="faint">
         <strong class="ml-2">
           <span class="fa fa-keyboard " />
@@ -21,8 +21,8 @@
     </Button>
   {:else if start !== null && stop === null}
     <Button class="w-100" success color="success" on:click={markOut}>
-      <span class="fas fa-video-slash" />
-      OUT
+      <span class="fas fa-fw fa-video-slash" />
+      <strong>out</strong>
       <small class="faint">
         <strong class="ml-2">
           <span class="fa fa-keyboard " />
