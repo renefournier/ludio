@@ -1,13 +1,3 @@
-<style>
-  .spacebar {
-    height: 0.4rem;
-    width: 1.5rem;
-    border-radius: 3px;
-    background-color: white;
-    margin: 0.5rem 0 0 auto;
-  }
-</style>
-
 <h3 class="faint text-center">
   <i class="fa fa-lg fa-keyboard" />
   shortcuts
@@ -114,3 +104,13 @@
     </td>
   </tr>
 </table>
+
+<style>
+  .spacebar {
+    height: 0.4rem;
+    width: 1.5rem;
+    border-radius: 1px;
+    background-color: white;
+    margin: 0.5rem 0 0 auto;
+  }
+</style>

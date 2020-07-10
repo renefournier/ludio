@@ -1,25 +1,34 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
-  import { createFFmpeg } from "@ffmpeg/ffmpeg";
   import SortableList from "svelte-sortable-list";
   import PlayButton from "./components/playButton.svelte";
-
-  import { Container, Col, Row, Button } from "sveltestrap";
-  import MarkerButton from "./components/markerButton.svelte";
+  import {
+    Container,
+    Col,
+    Row,
+    Button
+  } from "sveltestrap";
+import SourceSelector from "./components/sourceSelector.svelte";
+import MarkerButton from "./components/markerButton.svelte";
   import Render from "./components/render.svelte";
   import Clip from "./components/clip.svelte";
   import Item from "./components/item.svelte";
   import Help from "./components/help.svelte";
   import videos from "./data/videos.json";
   import sampleClips from "./data/clips.json";
+  // import { createFFmpeg } from "@ffmpeg/ffmpeg";
 
-  const ffmpeg = createFFmpeg({
-    log: true
-  });
-  window.playerSource = {}; // Attach to window so I can monkey with the player instance from DevTools
+  // let videos = [],
+  //   sampleClips = [];
+
+  // const ffmpeg = createFFmpeg({
+  //   log: true
+  // });
+  window.playerSource = {}; // Attach to window so I can monkey with the player instance from DevToolz
   window.playerPreview = {};
 
   let playerActive = "source",
+    source_id = 0,
     currentTime,
     start = null,
     stop = null,
@@ -27,7 +36,14 @@
     showHelp = false,
     clips = [];
 
-  const handleKeydown = event => {
+let list = [{
+  a: 4},{
+  b: 68},{
+  c: 234},{
+  d: 8342
+}];
+
+  const  handleKeydown = (event) => {
     // Because the keyboard is mighter [sometimes] than the mouse
     const keyCode = event.keyCode;
     console.log(keyCode);
@@ -116,7 +132,7 @@
     playerPreview.muted(!playerPreview.muted());
   };
 
-  const move = direction => {
+  const move = (direction) => {
     // Move playhead
     let s, duration, newTime;
     switch (playerActive) {
@@ -173,7 +189,7 @@
       stop = newTime;
       clips = [
         ...clips,
-        { id: Date.now(), src: src, start, stop: stop, duration: stop - start }
+        { id: Date.now(), src: src, start, stop: stop, duration: stop - start },
       ];
       stop = null;
       start = null;
@@ -189,7 +205,7 @@
 
   $: if (clips.length > 0) {
     let clipsDurationSeconds = 0;
-    clips.forEach(clip => {
+    clips.forEach((clip) => {
       clipsDurationSeconds += clip.duration;
     });
     clipsDuration = new Date(clipsDurationSeconds * 1000)
@@ -197,10 +213,10 @@
       .substr(11, 10);
   }
 
-  const play = async media => {
+  const play = async (media) => {
     if (typeof media === "object") {
       // Play 'em all — to do
-      media.forEach(item => {
+      media.forEach((item) => {
         console.log(item);
       });
     } else {
@@ -214,7 +230,7 @@
     }
   };
 
-  const del = media => {
+  const del = (media) => {
     if (typeof media === "object") {
       clips = [];
     } else {
@@ -249,14 +265,26 @@
     console.log("Complete transcoding");
     const data = ffmpeg.read("preview.mp4");
     playerPreview.src({
-      src: URL.createObjectURL(new Blob([data.buffer], { type: "video/mp4" }))
+      src: URL.createObjectURL(new Blob([data.buffer], { type: "video/mp4" })),
     });
+  };
+
+  const sortList = (ev) => {
+    console.log (ev.detail)
+    // list = ev.detail;
+  };
+
+  const changeSource = async (src_id) => {
+    console.log(src_id);
+    await playerSource.pause();
+    await playerSource.src(videos[src_id]);
+    await playerSource.play();
   };
 
   onMount(async () => {
     console.log("M: 🏇");
 
-    clips = sampleClips.map(clip => {
+    clips = sampleClips.map((clip) => {
       // add random sample sourcemedia
       clip.src = videos[Math.floor(Math.random() * videos.length)];
       return clip;
@@ -265,9 +293,9 @@
     window.playerSource = videojs(
       "video-source",
       {
-        autoplay: true,
+        autoplay: false,
         controls: true,
-        sources: videos[Math.floor(Math.random() * videos.length)] // let’s pick one at random, shall we? It’s all great content, so let’s not be too picky, right?!
+        sources: videos[source_id], // let’s pick one at random, shall we? It’s all great content, so let’s not be too picky, right?!
       },
       function onPlayerReady() {
         console.log("onPlayerReady0");
@@ -280,7 +308,7 @@
       {
         autoplay: false,
         controls: true,
-        sources: videos[Math.floor(Math.random() * videos.length)]
+        sources: videos[Math.floor(Math.random() * videos.length)],
       },
       function onPlayerReady() {
         console.log("onPlayerReady1");
@@ -306,43 +334,6 @@
   });
 </script>
 
-<style>
-  .monitor {
-    background: rgba(0, 0, 0, 0.7);
-  }
-
-  .monitor > p {
-    text-align: center;
-    display: block;
-    color: rgba(255, 255, 255, 0.1);
-    width: 100%;
-  }
-
-  .monitor > p.active {
-    color: #ffffff;
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.25);
-  }
-  .video {
-    max-width: 100%;
-    max-height: 350px;
-  }
-  ul {
-    width: 100% !important;
-  }
-
-  ul li {
-    width: 100% !important;
-  }
-
-  .btn > * {
-    color: rgba(255, 255, 255, 0.25);
-    cursor: pointer;
-  }
-  .btn:hover > * {
-    color: #00b4ff !important;
-  }
-</style>
-
 <svelte:window on:keydown={handleKeydown} />
 
 <Container fluid class="px-0">
@@ -350,10 +341,16 @@
     <Col sm="6" class="mx-0 px-0">
 
       <Row class="m-0 p-0 monitor">
-        <p class:active={playerActive === 'source'} class="px-4 py-2 mb-0 ">
-          <span class="fa fa-sign-in-alt mr-1" />
-          <strong>Source</strong>
-        </p>
+        <Col />
+        <Col>
+          <p class:active={playerActive === 'source'} class="px-4 py-2 mb-0 ">
+            <span class="fa fa-sign-in-alt mr-1" />
+            <strong>Source</strong>
+          </p>
+        </Col>
+        <Col>
+          <SourceSelector {videos} {source_id} {changeSource} />          
+        </Col>
       </Row>
 
       <Row class="m-0 p-0">
@@ -397,6 +394,7 @@
           <Item
             {item}
             {index}
+            on:sort={sortList}
             del={() => del(index)}
             play={() => play(index)} />
         </SortableList>
@@ -453,3 +451,45 @@
 
   </Row>
 </Container>
+
+<style>
+
+
+  .monitor {
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .monitor > p {
+    text-align: center;
+    display: block;
+    color: rgba(255, 255, 255, 0.1);
+    width: 100%;
+  }
+
+  .monitor > p.active {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+  }
+
+  .video {
+    max-width: 100%;
+    max-height: 350px;
+  }
+
+  ul {
+    width: 100% !important;
+  }
+
+  ul li {
+    width: 100% !important;
+  }
+
+  .btn > * {
+    color: rgba(255, 255, 255, 0.25);
+    cursor: pointer;
+  }
+
+  .btn:hover > * {
+    color: #00b4ff !important;
+  }
+</style>
